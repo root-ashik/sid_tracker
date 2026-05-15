@@ -92,6 +92,8 @@ if "end_lng" not in st.session_state:
 # ---------------------------------------------------
 # LOCATION SECTION
 # ---------------------------------------------------
+st.subheader("📍 Select Locations")
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -105,12 +107,19 @@ with col1:
         location_names
     )
 
+with col2:
+
     to_location = st.selectbox(
         "To",
         customer_df["Name"].dropna().tolist()
     )
 
-with col2:
+# ---------------------------------------------------
+# ADDRESS DISPLAY
+# ---------------------------------------------------
+col1, col2 = st.columns(2)
+
+with col1:
 
     from_address = "Office"
 
@@ -122,17 +131,19 @@ with col2:
 
         from_address = from_row["address"]
 
-    to_row = customer_df[
-        customer_df["Name"] == to_location
-    ].iloc[0]
-
-    to_address = to_row["address"]
-
     st.text_input(
         "From Address",
         value=from_address,
         disabled=True
     )
+
+with col2:
+
+    to_row = customer_df[
+        customer_df["Name"] == to_location
+    ].iloc[0]
+
+    to_address = to_row["address"]
 
     st.text_input(
         "To Address",
@@ -143,6 +154,8 @@ with col2:
 # ---------------------------------------------------
 # VEHICLE
 # ---------------------------------------------------
+st.subheader("🚗 Vehicle")
+
 vehicle_numbers = sorted(
     customer_df["delivery_vh_no"]
     .dropna()
@@ -156,7 +169,7 @@ selected_vehicle = st.selectbox(
 )
 
 # ---------------------------------------------------
-# LIVE GPS TRACKING
+# LIVE GPS
 # ---------------------------------------------------
 st.markdown("---")
 
@@ -178,8 +191,7 @@ gps_data = streamlit_js_eval(
                 resolve({
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: position.timestamp
+                    accuracy: position.coords.accuracy
                 });
 
             },
@@ -196,7 +208,7 @@ gps_data = streamlit_js_eval(
         );
     });
     """,
-    key="live_gps_tracking"
+    key="live_gps"
 )
 
 current_location = ""
@@ -240,7 +252,7 @@ else:
     st.error("❌ Waiting For GPS Access")
 
 # ---------------------------------------------------
-# CONTROL BUTTONS
+# BUTTONS
 # ---------------------------------------------------
 st.markdown("---")
 
@@ -268,7 +280,7 @@ with col1:
                 f"{current_lat},{current_lng}"
             )
 
-            st.success("✅ Travel Started")
+            st.success("✅ Trip Started")
 
             st.rerun()
 
@@ -312,34 +324,46 @@ with col2:
             st.warning("Start trip first")
 
 # ---------------------------------------------------
-# RUNNING ANIMATION
+# RUNNING ANIMATION FIXED
 # ---------------------------------------------------
 if st.session_state.trip_started:
 
-    st.markdown("""
-    <div style='text-align:center;
-                padding:30px;'>
+    st.markdown(
+        """
+        <div style="
+            text-align:center;
+            padding:40px;
+            border-radius:20px;
+            background-color:#111827;
+            margin-top:20px;
+        ">
 
-        <div style='font-size:100px;
-                    animation: drive 1s infinite alternate;'>
-            🚚
+            <div style="
+                font-size:100px;
+                animation: drive 1s infinite alternate;
+            ">
+                🚚
+            </div>
+
+            <h2 style="color:white;">
+                Trip In Progress
+            </h2>
+
         </div>
 
-        <h2>Trip In Progress</h2>
-
-    </div>
-
-    <style>
-    @keyframes drive {
-        from {
-            transform: translateX(-40px);
+        <style>
+        @keyframes drive {
+            from {
+                transform: translateX(-40px);
+            }
+            to {
+                transform: translateX(40px);
+            }
         }
-        to {
-            transform: translateX(40px);
-        }
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ---------------------------------------------------
 # SAVE SECTION
@@ -350,11 +374,11 @@ if st.session_state.ready_to_save:
 
     st.subheader("💾 Save Trip")
 
-    st.info(f"From: {from_address}")
+    st.info(f"📍 From: {from_address}")
 
-    st.info(f"To: {to_address}")
+    st.info(f"📍 To: {to_address}")
 
-    st.info(f"Vehicle: {selected_vehicle}")
+    st.info(f"🚗 Vehicle: {selected_vehicle}")
 
     if st.button(
         "✅ SAVE TO TRACKER",
@@ -368,7 +392,7 @@ if st.session_state.ready_to_save:
             )
 
             # ---------------------------------------------------
-            # GOOGLE MAP ROUTE
+            # MAP ROUTE
             # ---------------------------------------------------
             map_url = (
                 "https://www.google.com/maps/dir/?api=1"
@@ -382,7 +406,7 @@ if st.session_state.ready_to_save:
             )
 
             # ---------------------------------------------------
-            # SAVE TO SHEET
+            # SAVE ROW
             # ---------------------------------------------------
             tracker_sheet.append_row([
 
@@ -404,7 +428,7 @@ if st.session_state.ready_to_save:
             ])
 
             # ---------------------------------------------------
-            # TRACK LINK
+            # ADD TRACK BUTTON
             # ---------------------------------------------------
             last_row = len(
                 tracker_sheet.get_all_values()
