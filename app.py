@@ -27,7 +27,10 @@ def init_sheets():
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
-    credentials = ServiceAccountCredentials.from_json_keyfile_name("gcp_service_account", scope)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+    st.secrets["gcp_service_account"],
+    scope
+)
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_key("1Cwe5jN7iiNYV9LKReshFl_BLvcuAJ3pgMeWBWaRstCY")
     return spreadsheet.worksheet("Cus_Details"), spreadsheet.worksheet("Tracker")
